@@ -34,6 +34,7 @@ for i=1,32 do
     watcher.targetdebuffs[i] = {}
 end
 
+-- Update the OnUpdate script to include debuffs found in buff slots
 watcher:SetScript("OnUpdate", function()
     --Throttle updates frequency
     if ( this.tick or 1 ) > GetTime() then return end
@@ -56,6 +57,8 @@ watcher:SetScript("OnUpdate", function()
             this.playerbuffs[i][4] = nil
             this.playerbuffs[i][5] = 0
         end
+
+        -- Check debuff slots
         texture, name, timeleft, stacks = GetBuffData("target", i, "HARMFUL")
         timeleft = timeleft or 0
         if texture and name and name ~= "" then
@@ -65,11 +68,21 @@ watcher:SetScript("OnUpdate", function()
             this.targetdebuffs[i][4] = texture
             this.targetdebuffs[i][5] = stacks
         else
-            this.targetdebuffs[i][1] = 0
-            this.targetdebuffs[i][2] = nil
-            this.targetdebuffs[i][3] = nil
-            this.targetdebuffs[i][4] = nil
-            this.targetdebuffs[i][5] = 0
+            -- Check buff slots for debuffs when debuff slots are full
+            texture, name, timeleft, stacks = GetBuffData("target", i, "HELPFUL")
+            if name and name ~= "" then
+                this.targetdebuffs[i][1] = timeleft
+                this.targetdebuffs[i][2] = i
+                this.targetdebuffs[i][3] = name
+                this.targetdebuffs[i][4] = texture
+                this.targetdebuffs[i][5] = stacks
+            else
+                this.targetdebuffs[i][1] = 0
+                this.targetdebuffs[i][2] = nil
+                this.targetdebuffs[i][3] = nil
+                this.targetdebuffs[i][4] = nil
+                this.targetdebuffs[i][5] = 0
+            end
         end
     end
 end)
