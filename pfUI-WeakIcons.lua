@@ -140,88 +140,87 @@ pfUI:RegisterModule("WeakIcons", "vanilla", function()
             -----------------------------------------------------------------------------
             -- OnUpdate: update icon based on current aura state.
             -----------------------------------------------------------------------------
-            f:SetScript("OnUpdate", function()
-                    if (this.tick or 0) > GetTime() then
-                        return
-                    end
-                    this.tick = GetTime() + 0.2
+-- Replace the OnUpdate script in the NewIcon function (only showing the modified part)
+f:SetScript("OnUpdate", function()
+    if ( this.tick or .1) > GetTime() then return else this.tick = GetTime() + .1 end
 
-                    if not inactive then
-                        -- Active icons: show icon if buff is active; if not, optionally show a missing icon.
-                        local auraData = watcher:fetch(args.name, args.unit)
-                        if auraData then
-                            if auraData[4] and auraData[4] ~= "" then
-                                this.texture:SetTexture(auraData[4])
-                            end
-                            local remaining = auraData[1] or 0
-                            if remaining > 0 then
-                                this.text:SetText(GetColoredTimeString(remaining))
-                            else
-                                this.text:SetText("")
-                            end
-                            if auraData[5] and auraData[5] > 1 then
-                                this.smalltext:SetText(auraData[5])
-                            else
-                                this.smalltext:SetText("")
-                            end
-                            this.texture:SetDesaturated(false)
-                            this.texture:Show()
-                            this.backdrop:Show()
-                        else
-                            if C.weakicons.greyscale == "1" then
-                                if tonumber(args.name) then
-                                    local defaultTex = GetSpellTexture(tonumber(args.name)) or ""
-                                    this.texture:SetTexture(defaultTex)
-                                else
-                                    local defaultTex = ""
-                                    local spellName, _, spellIcon = GetSpellInfo(args.name)
-                                    defaultTex = spellIcon or ""
-                                    this.texture:SetTexture(defaultTex)
-                                end
-                                this.texture:SetDesaturated(true)
-                                this.texture:Show()
-                                this.backdrop:Show()
-                            else
-                                this.texture:Hide()
-                                this.backdrop:Hide()
-                            end
-                            this.text:SetText("")
-                            this.smalltext:SetText("")
-                        end
-                    else
-                        -- Inactive icons: show icon only when the buff is NOT active.
-                        local auraData = watcher:fetch(args.name, args.unit)
-                        if auraData then
-                            -- Buff is active, so hide the inactive icon.
-                            this.texture:Hide()
-                            this.backdrop:Hide()
-                        else
-                            -- Ensure we only show inactive debuffs if an enemy is targeted.
-                            if
-                                args.unit == "target" and
-                                    (not UnitExists("target") or not UnitCanAttack("player", "target"))
-                             then
-                                this.texture:Hide()
-                                this.backdrop:Hide()
-                                return
-                            end
-
-                            -- Buff is inactive: show default texture.
-                            local defaultTex = ""
-                            if tonumber(args.name) then
-                                defaultTex = GetSpellTexture(tonumber(args.name)) or ""
-                            else
-                                local spellName, _, spellIcon = GetSpellInfo(args.name)
-                                defaultTex = spellIcon or ""
-                            end
-                            this.texture:SetTexture(defaultTex)
-                            this.texture:SetDesaturated(false)
-                            this.texture:Show()
-                            this.backdrop:Show()
-                        end
-                    end
+    if not inactive then
+        -- Active icons: show icon if buff is active; if not, optionally show a missing icon.
+        local auraData = watcher:fetch(args.name, args.unit)
+        if auraData then
+            if auraData[4] and auraData[4] ~= "" then
+                this.texture:SetTexture(auraData[4])
+            end
+            local remaining = auraData[1] or 0
+            if remaining > 0 then
+                this.text:SetText(GetColoredTimeString(remaining))
+            else
+                this.text:SetText("")
+            end
+            if auraData[5] and auraData[5] > 1 then
+                this.smalltext:SetText(auraData[5])
+            else
+                this.smalltext:SetText("")
+            end
+            this.texture:SetDesaturated(false)
+            this.texture:Show()
+            this.backdrop:Show()
+        else
+            if C.weakicons.greyscale == "1" then
+                if tonumber(args.name) then
+                    local defaultTex = GetSpellTexture(tonumber(args.name)) or ""
+                    this.texture:SetTexture(defaultTex)
+                else
+                    local defaultTex = ""
+                    local spellName, _, spellIcon = GetSpellInfo(args.name)
+                    defaultTex = spellIcon or watcher:getCachedTexture(args.name) or ""
+                    this.texture:SetTexture(defaultTex)
                 end
-            )
+                this.texture:SetDesaturated(true)
+                this.texture:Show()
+                this.backdrop:Show()
+            else
+                this.texture:Hide()
+                this.backdrop:Hide()
+            end
+            this.text:SetText("")
+            this.smalltext:SetText("")
+        end
+    else
+        -- Inactive icons: show icon only when the buff is NOT active.
+        local auraData = watcher:fetch(args.name, args.unit)
+        if auraData then
+            -- Buff is active, so hide the inactive icon.
+            this.texture:Hide()
+            this.backdrop:Hide()
+        else
+            -- Ensure we only show inactive debuffs if an enemy is targeted.
+            if
+                args.unit == "target" and
+                    (not UnitExists("target") or not UnitCanAttack("player", "target"))
+            then
+                this.texture:Hide()
+                this.backdrop:Hide()
+                return
+            end
+
+            -- Buff is inactive: show default texture.
+            local defaultTex = ""
+            if tonumber(args.name) then
+                defaultTex = GetSpellTexture(tonumber(args.name)) or ""
+            else
+                local spellName, _, spellIcon = GetSpellInfo(args.name)
+                defaultTex = spellIcon or watcher:getCachedTexture(args.name) or ""
+            end
+            this.texture:SetTexture(defaultTex)
+            this.texture:SetDesaturated(false)
+            this.texture:Show()
+            this.backdrop:Show()
+        end
+        this.text:SetText("")
+        this.smalltext:SetText("")
+    end
+end)
 
             return f
         end

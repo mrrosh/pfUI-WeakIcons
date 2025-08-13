@@ -21,7 +21,6 @@ local function GetBuffData(unit, id, atype, skipTooltip)
     end
 end
 
---{{
 -- Creates a frame that watches player and target aura situation
 local watcher = CreateFrame("Frame", "pfWeakIconsWatcherFrame", UIParent)
 
@@ -34,13 +33,14 @@ for i=1,32 do
     watcher.targetdebuffs[i] = {}
 end
 
--- Update the OnUpdate script to include debuffs found in buff slots
-watcher:SetScript("OnUpdate", function()
-    --Throttle updates frequency
-    if ( this.tick or 1 ) > GetTime() then return end
-    this.tick = GetTime() + 0.4
+-- Cache for textures of buffs/debuffs
+watcher.textureCache = {}
 
-    --Assign dynamic information to parent frame
+watcher:SetScript("OnUpdate", function()
+    -- Throttle updates frequency
+    if ( this.tick or .1) > GetTime() then return else this.tick = GetTime() + .1 end
+
+    -- Assign dynamic information to parent frame
     for i=1,32 do
         local texture, name, timeleft, stacks = GetBuffData("player", i, "HELPFUL")
         timeleft = timeleft or 0
@@ -50,6 +50,8 @@ watcher:SetScript("OnUpdate", function()
             this.playerbuffs[i][3] = name
             this.playerbuffs[i][4] = texture
             this.playerbuffs[i][5] = stacks
+            -- Cache texture for this buff
+            this.textureCache[name] = texture
         else
             this.playerbuffs[i][1] = 0
             this.playerbuffs[i][2] = nil
@@ -67,6 +69,8 @@ watcher:SetScript("OnUpdate", function()
             this.targetdebuffs[i][3] = name
             this.targetdebuffs[i][4] = texture
             this.targetdebuffs[i][5] = stacks
+            -- Cache texture for this debuff
+            this.textureCache[name] = texture
         else
             -- Check buff slots for debuffs when debuff slots are full
             texture, name, timeleft, stacks = GetBuffData("target", i, "HELPFUL")
@@ -76,6 +80,8 @@ watcher:SetScript("OnUpdate", function()
                 this.targetdebuffs[i][3] = name
                 this.targetdebuffs[i][4] = texture
                 this.targetdebuffs[i][5] = stacks
+                -- Cache texture for this debuff
+                this.textureCache[name] = texture
             else
                 this.targetdebuffs[i][1] = 0
                 this.targetdebuffs[i][2] = nil
@@ -108,4 +114,9 @@ function watcher:fetch(name, unit)
             end
         end
     end
+end
+
+-- New function to retrieve cached texture
+function watcher:getCachedTexture(name)
+    return self.textureCache[name]
 end
