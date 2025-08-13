@@ -2,7 +2,7 @@
 ## Title: |cff33ffccpf|cffffffffUI|cffaaaaaa [WeakIcons]
 ## Author: vetu104, Mr_Rosh
 ## Notes: Create icons for important auras
-## Version: 3.0
+## Version: 4.0
 ## Dependencies: pfUI
 
 watcher.lua
